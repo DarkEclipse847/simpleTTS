@@ -1,6 +1,6 @@
 use hound::WavReader;
 use ndarray::Array2;
-use spectrograms::{MelParams, MelPowerSpectrogram, SpectrogramParams, StftParams, WindowType, nzu, };
+use spectrograms::{LogParams, MelDbSpectrogram, MelParams, SpectrogramParams, StftParams, WindowType, nzu, };
 use anyhow::{Error, Ok, Result};
 use non_empty_slice::{NonEmptySlice};
 
@@ -30,8 +30,9 @@ pub fn raw_data_to_spectrogram(
     let stft_params = StftParams::new(nzu!(1024), nzu!(256), WindowType::Hanning, true)?;
     let spectrogram_params = SpectrogramParams::new(stft_params, sample_rate)?;
     let mel = MelParams::new(nzu!(80), 0.0, sample_rate/2.0)?;
+    let log_params = LogParams::new(-80.0)?;
 
-    let data = MelPowerSpectrogram::compute(NonEmptySlice::try_from_slice(&raw_data).unwrap(), &spectrogram_params, &mel, None)?;
+    let data = MelDbSpectrogram::compute(NonEmptySlice::try_from_slice(&raw_data).unwrap(), &spectrogram_params, &mel, Some(&log_params))?;
     let data_vec = data
         .data()
         .as_slice()
