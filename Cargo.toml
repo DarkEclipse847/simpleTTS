@@ -16,3 +16,4 @@ candle-core = "0.11.0"
 safetensors = "0.4" 
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+serde-jsonlines = "0.7.0"

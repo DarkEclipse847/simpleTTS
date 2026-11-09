@@ -3,11 +3,11 @@ use ndarray::{s, Array2};
 use spectrograms::{LogParams, MelDbSpectrogram, MelParams, SpectrogramParams, StftParams, WindowType, nzu, };
 use anyhow::{Error, Ok, Result, bail};
 use non_empty_slice::{NonEmptySlice};
-use std::num::NonZeroUsize as NonZero;
+use std::{num::NonZeroUsize as NonZero, path::Path};
 
 /// Parses wav data into one-dimentional Vec of f32(-1.0 to 1.0)
 pub fn wav_to_raw_data(
-    path: &str
+    path: &Path
 ) -> Result<Vec<f64>, Error>{
     let mut reader = WavReader::open(path)?;
 
