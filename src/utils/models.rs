@@ -10,7 +10,6 @@ pub struct Dataset{
 }
 
 #[derive(Deserialize, Debug, Clone)]
-#[serde(try_from = "RawCSV")]
 pub struct ManifestItem{
     pub id: String,
     pub audio_filepath: PathBuf,
@@ -26,11 +25,9 @@ pub struct RawCSV{
     pub normalized_text: Option<String>,
 }
 
-// TODO: remove hardcoded filepath
-impl TryFrom<RawCSV> for ManifestItem{
-    type Error = anyhow::Error;
-    fn try_from(raw: RawCSV) -> Result<Self, Self::Error> {
-        let audio_path: PathBuf = PathBuf::from(format!("train_data/ruslan_dataset/data/{}.wav", raw.id));
+impl ManifestItem{
+    pub fn try_from_raw(raw: RawCSV, data_dir: &Path) -> anyhow::Result<Self> {
+        let audio_path: PathBuf = data_dir.join(format!("{}.wav", raw.id));
         let duration = wav_duration(Path::new(&audio_path))?;
         Ok(ManifestItem {
             id: raw.id,

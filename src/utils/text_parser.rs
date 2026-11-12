@@ -7,7 +7,7 @@ use std::thread;
 use std::time::Duration;
 use std::fs;
 
-use crate::utils::models::{self, ManifestItem};
+use crate::utils::models::{self, ManifestItem, RawCSV};
 
 //////////////////////////////////
 // JSONL for NeMo-like datasets //
@@ -41,15 +41,14 @@ pub fn prepare_text_batches(manifest: &mut Vec<models::ManifestItem>) -> Vec<Vec
 // CSV for Piper-like datasets //
 /////////////////////////////////
 
-pub fn parse_csv(path: &Path) -> Result<Vec<ManifestItem>, Error>{
+pub fn parse_csv(path: &Path, data_path: &Path) -> Result<Vec<ManifestItem>, Error>{
 
     // misc for beauty
-    println!("/////////////////////////////////////////");
-    println!("// Starting to calculate wav durations //");
-    println!("/////////////////////////////////////////");
+    println!("/////////////////////////////////");
+    println!("// Starting to process dataset //");
+    println!("/////////////////////////////////");
     thread::sleep(Duration::from_secs(3));
-    let folder_path = path.with_file_name("data");
-    let count = fs::read_dir(folder_path)?.count();
+    let count = fs::read_dir(data_path)?.count();
     let bar = ProgressBar::new(count as u64);
     bar.set_style(
         ProgressStyle::with_template(
@@ -61,12 +60,9 @@ pub fn parse_csv(path: &Path) -> Result<Vec<ManifestItem>, Error>{
         .delimiter(b'|')
         .from_path(path)?;
     let parsed_data_csv: Vec<ManifestItem> = csv_reader
-        .deserialize()
+        .deserialize::<RawCSV>()
         .progress_with(bar)
+        .map(|raw| ManifestItem::try_from_raw(raw?, &data_path))
         .collect::<Result<_, _>>()?; 
-    //for row in csv_reader.deserialize(){
-    //    let row: ManifestItem = row?;
-    //    println!("{:?}", row);
-    //}
     Ok(parsed_data_csv)
 }

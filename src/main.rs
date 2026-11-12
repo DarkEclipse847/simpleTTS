@@ -11,7 +11,7 @@ mod nn;
 
 mod utils;
 fn main() -> Result<()> {
-    let mut parsed_data = parse_csv(Path::new("train_data/ruslan_dataset/metadata_RUSLAN_22200.csv"))?;
+    let mut parsed_data = parse_csv(Path::new("train_data/ruslan_dataset/metadata_RUSLAN_22200.csv"), Path::new("train_data/ruslan_dataset/data"))?;
     sort_manifest_by_duration(&mut parsed_data);
     let batches = prepare_text_batches(&mut parsed_data);
     //println!("Vec: {:?}",batches);
