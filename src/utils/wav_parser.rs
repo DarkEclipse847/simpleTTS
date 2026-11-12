@@ -52,3 +52,10 @@ pub fn raw_data_to_spectrogram(
         Ok((arr_2d, data.n_frames().get()))
     }
 }
+
+pub fn wav_duration(path: &Path) -> Result<f32, Error>{
+    let reader = WavReader::open(path)?;
+    let spec = reader.spec();
+    let duration = reader.duration()as f32 / spec.sample_rate as f32;
+    Ok(duration)
+}

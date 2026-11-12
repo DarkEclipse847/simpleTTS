@@ -1,11 +1,19 @@
-use std::path::Path;
+use std::path::{self, Path, PathBuf};
 use anyhow::{Error, Ok, Result};
+use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};
 use rand::seq::SliceRandom;
 use serde_jsonlines::json_lines;
+use std::thread;
+use std::time::Duration;
+use std::fs;
 
 use crate::utils::models::{self, ManifestItem};
 
-pub fn parse_json(path: &Path) -> Result<Vec<models::ManifestItem>, Error>{
+//////////////////////////////////
+// JSONL for NeMo-like datasets //
+//////////////////////////////////
+
+pub fn parse_jsonl(path: &Path) -> Result<Vec<ManifestItem>, Error>{
     let parsed_data = json_lines(path)?
         .map(|res| res.map_err(anyhow::Error::from))
         .collect::<Result<Vec<models::ManifestItem>>>()?;
@@ -28,3 +36,37 @@ pub fn prepare_text_batches(manifest: &mut Vec<models::ManifestItem>) -> Vec<Vec
     return batches;
 }
 
+
+/////////////////////////////////
+// CSV for Piper-like datasets //
+/////////////////////////////////
+
+pub fn parse_csv(path: &Path) -> Result<Vec<ManifestItem>, Error>{
+
+    // misc for beauty
+    println!("/////////////////////////////////////////");
+    println!("// Starting to calculate wav durations //");
+    println!("/////////////////////////////////////////");
+    thread::sleep(Duration::from_secs(3));
+    let folder_path = path.with_file_name("data");
+    let count = fs::read_dir(folder_path)?.count();
+    let bar = ProgressBar::new(count as u64);
+    bar.set_style(
+        ProgressStyle::with_template(
+            "[{elapsed_precise}] {bar:40.cyan/blue} {pos}/{len} rows ({per_sec}, {eta})"
+        ).unwrap().progress_chars("█▒░")
+    );
+
+    let mut csv_reader = csv::ReaderBuilder::new()
+        .delimiter(b'|')
+        .from_path(path)?;
+    let parsed_data_csv: Vec<ManifestItem> = csv_reader
+        .deserialize()
+        .progress_with(bar)
+        .collect::<Result<_, _>>()?; 
+    //for row in csv_reader.deserialize(){
+    //    let row: ManifestItem = row?;
+    //    println!("{:?}", row);
+    //}
+    Ok(parsed_data_csv)
+}
