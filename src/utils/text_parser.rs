@@ -1,6 +1,6 @@
-use std::path::{self, Path, PathBuf};
+use std::path::Path;
 use anyhow::{Error, Ok, Result};
-use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};
+use indicatif::{ProgressBar, ProgressFinish::Abandon, ProgressIterator, ProgressStyle};
 use rand::seq::SliceRandom;
 use serde_jsonlines::json_lines;
 use std::thread;
@@ -14,6 +14,7 @@ use crate::utils::models::{self, ManifestItem, RawCSV};
 //////////////////////////////////
 
 pub fn parse_jsonl(path: &Path) -> Result<Vec<ManifestItem>, Error>{
+    // TODO: add a dynamic path to directory
     let parsed_data = json_lines(path)?
         .map(|res| res.map_err(anyhow::Error::from))
         .collect::<Result<Vec<models::ManifestItem>>>()?;
@@ -46,14 +47,14 @@ pub fn parse_csv(path: &Path, data_path: &Path) -> Result<Vec<ManifestItem>, Err
     // misc for beauty
     println!("/////////////////////////////////");
     println!("// Starting to process dataset //");
-    println!("/////////////////////////////////");
+    println!("/////////////////////////////////\n");
     thread::sleep(Duration::from_secs(3));
     let count = fs::read_dir(data_path)?.count();
     let bar = ProgressBar::new(count as u64);
     bar.set_style(
         ProgressStyle::with_template(
             "[{elapsed_precise}] {bar:40.cyan/blue} {pos}/{len} rows ({per_sec}, {eta})"
-        ).unwrap().progress_chars("█▒░")
+        ).unwrap().progress_chars("█▒░"),
     );
 
     let mut csv_reader = csv::ReaderBuilder::new()
@@ -61,7 +62,7 @@ pub fn parse_csv(path: &Path, data_path: &Path) -> Result<Vec<ManifestItem>, Err
         .from_path(path)?;
     let parsed_data_csv: Vec<ManifestItem> = csv_reader
         .deserialize::<RawCSV>()
-        .progress_with(bar)
+        .progress_with(bar.with_finish(Abandon))
         .map(|raw| ManifestItem::try_from_raw(raw?, &data_path))
         .collect::<Result<_, _>>()?; 
     Ok(parsed_data_csv)

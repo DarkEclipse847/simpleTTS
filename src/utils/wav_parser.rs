@@ -14,7 +14,7 @@ pub fn wav_to_raw_data(
 
     //Print out reader specification
     let spec = reader.spec();
-    println!("Reader spec: {:?}", spec);
+    //println!("Reader spec: {:?}", spec);
 
     //Collect data into a Vec
     let mut raw_data: Vec<f64> = Vec::new();
@@ -41,7 +41,7 @@ pub fn raw_data_to_spectrogram(
         .as_slice()
         .unwrap()
         .to_vec();
-    let arr_2d = Array2::<f64>::from_shape_vec((data.n_frames().get(), data.n_bins().get()), data_vec)?;
+    let arr_2d = Array2::<f64>::from_shape_vec((data.n_bins().get(), data.n_frames().get()), data_vec)?;
     if data.n_frames() < NonZero::new(max_frames).unwrap() {
         let mut arr_2d_with_padding_empty = Array2::<f64>::from_elem((max_frames, data.n_bins().get()), -80.0);
         let mut arr_2d_with_padding = arr_2d_with_padding_empty.slice_mut(s![0..data.n_frames().get(), ..]);
