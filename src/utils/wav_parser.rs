@@ -9,7 +9,7 @@ use std::num::NonZero;
 /// Parses wav data into one-dimentional Vec of f32(-1.0 to 1.0)
 pub fn wav_to_raw_data(
     path: &Path
-) -> Result<Vec<f64>, Error>{
+) -> Result<(Vec<f64>, u32), Error>{
     let mut reader = WavReader::open(path)?;
 
     //Print out reader specification
@@ -22,17 +22,19 @@ pub fn wav_to_raw_data(
         let s = sample?;
         raw_data.push((s as f64)/(i16::MAX as f64));
     }
-    Ok(raw_data)
+    Ok((raw_data, spec.sample_rate))
 }
 
 pub fn raw_data_to_spectrogram(
     raw_data: Vec<f64>,
+    sample_rate: u32,
     max_frames: usize
 ) -> Result<(Array2<f64>, usize), Error> {
-    let sample_rate = 24000.0;
+    // let sample_rate = 24000.0;
+    
     let stft_params = StftParams::new(nzu!(1024), nzu!(256), WindowType::Hanning, true)?;
-    let spectrogram_params = SpectrogramParams::new(stft_params, sample_rate)?;
-    let mel = MelParams::new(nzu!(80), 0.0, sample_rate/2.0)?;
+    let spectrogram_params = SpectrogramParams::new(stft_params, sample_rate as f64)?;
+    let mel = MelParams::new(nzu!(80), 0.0, (sample_rate as f64)/2.0)?;
     let log_params = LogParams::new(-80.0)?;
 
     let data = MelDbSpectrogram::compute(NonEmptySlice::try_from_slice(&raw_data).unwrap(), &spectrogram_params, &mel, Some(&log_params))?;
