@@ -44,3 +44,33 @@ pub struct Batch{
     pub text: Tensor,
     pub mel_length: Tensor,
 }
+
+pub struct RussianTokenizer{
+    pub alphabet: Vec<char>, 
+}
+
+impl RussianTokenizer {
+    pub fn new() -> Self{
+        let mut alphabet = vec!['_', '~'];
+        alphabet.extend("абвгдеёжзийклмнопрстуфхцчшщъыьэюя".chars());
+        alphabet.push('\u{0301}');
+        alphabet.extend(" .,!?-\"".chars());
+        Self { alphabet }
+    }
+    pub fn new_with_emojis() -> Self{
+        let mut alphabet = vec!['_', '~'];
+        alphabet.extend("абвгдеёжзийклмнопрстуфхцчшщъыьэюя".chars());
+        alphabet.push('\u{0301}');
+        alphabet.push('😡'); //anger
+        alphabet.push('😭'); //sadness
+        alphabet.push('😲'); //astonishment
+        alphabet.push('😄'); //happiness
+        alphabet.push('😨'); //fear
+        alphabet.push('🤢'); //disgust
+        alphabet.push('😐'); //neutral
+        alphabet.push('✅'); //other
+        alphabet.push('❌'); //unknown
+        alphabet.extend(" .,!?-\"".chars());
+        Self { alphabet }
+    }
+}
